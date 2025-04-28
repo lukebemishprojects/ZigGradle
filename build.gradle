@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation gradleApi()
-    
+
     compileOnly "org.jspecify:jspecify:1.0.0"
     implementation "org.apache.commons:commons-compress:1.27.1"
     // commons-compress does not depend on this but uses it for xz decompression

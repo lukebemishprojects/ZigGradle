@@ -1,25 +1,27 @@
 package dev.lukebemish.ziggradle.toolchain.internal;
 
+import dev.lukebemish.ziggradle.internal.PlatformUtils;
 import dev.lukebemish.ziggradle.toolchain.ZigCompiler;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.platform.OperatingSystem;
 
 import javax.inject.Inject;
 
 public class ZigToolchain {
     private final Directory directory;
-    private final ResolvedZigInfo spec;
+    private final ResolvedZigToolchainInfo spec;
 
     @Inject
-    public ZigToolchain(Directory directory, ResolvedZigInfo spec) {
+    public ZigToolchain(Directory directory, ResolvedZigToolchainInfo spec) {
         this.directory = directory;
         this.spec = spec;
     }
 
     @Nested
-    protected ResolvedZigInfo getSpec() {
+    protected ResolvedZigToolchainInfo getSpec() {
         return spec;
     }
 
@@ -41,8 +43,13 @@ public class ZigToolchain {
             return toolchain;
         }
 
+        @SuppressWarnings("UnstableApiUsage")
         @Override
         public RegularFile getExecutablePath() {
+            var os = PlatformUtils.getBuildPlatform().getOperatingSystem();
+            if (os == OperatingSystem.WINDOWS) {
+                return toolchain.directory.file("zig.exe");
+            }
             return toolchain.directory.file("zig");
         }
     }
