@@ -9,7 +9,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -20,12 +19,14 @@ import org.gradle.platform.OperatingSystem;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class ZigToolchainsExtensionInternal extends ZigToolchainsExtension {
     public static final String ZIG_TOOLCHAIN_PROVIDER_SERVICE_PREFIX = "dev.lukebemish.ziggradle.internal.toolchain.providers.";
     public static final String ZIG_TOOLCHAIN_PROVIDER_PROXY_EXTENSION = "dev.lukebemish.ziggradle.internal.toolchain.providersExtension";
-    
+
     @SuppressWarnings("unchecked")
     @Inject
     public ZigToolchainsExtensionInternal() {
@@ -34,19 +35,19 @@ public abstract class ZigToolchainsExtensionInternal extends ZigToolchainsExtens
             setProviders((List<ZigToolchainProviderInfo.SerializedInfo>) providerIntoList);
         }
     }
-    
+
     @Inject
     protected abstract Project getProject();
-    
+
     protected abstract ListProperty<ZigToolchainProviderInfo> getToolchainProviderInfo();
-    
+
     public void setProviders(List<ZigToolchainProviderInfo.SerializedInfo> providerServices) {
         for (var providerInfo : providerServices) {
             var providerService = getProject().getGradle().getSharedServices().getRegistrations().findByName(ZIG_TOOLCHAIN_PROVIDER_SERVICE_PREFIX + providerInfo.name());
             getToolchainProviderInfo().add(new ZigToolchainProviderInfo(providerInfo, providerService.getService().map(s -> (ZigToolchainProvider) s)));
         }
-    } 
-    
+    }
+
     @SuppressWarnings("UnstableApiUsage")
     protected BuildPlatform getBuildPlatform() {
         OperatingSystem os;
@@ -79,13 +80,20 @@ public abstract class ZigToolchainsExtensionInternal extends ZigToolchainsExtens
         if (arch == null) {
             throw new IllegalStateException("Unsupported architecture: " + osArch);
         }
-        
+
         return BuildPlatformFactory.of(arch, os);
     }
 
+    private final Map<ResolvedZigInfo, Provider<ZigToolchain>> toolchains = new HashMap<>();
+
     private Provider<ZigToolchain> toolchainFor(ZigToolchainSpec spec) {
-        var resolvedSpec = new ResolvedZigSpec(spec.getVersion().get());
-        // TODO: find local installations
+        // TODO: support local toolchains?
+
+        var resolvedSpec = new ResolvedZigInfo(spec.getVersion().get());
+
+        if (toolchains.containsKey(resolvedSpec)) {
+            return toolchains.get(resolvedSpec);
+        }
 
         for (var providerInfo : getToolchainProviderInfo().get()) {
             var name = providerInfo.info().name();
@@ -122,7 +130,7 @@ public abstract class ZigToolchainsExtensionInternal extends ZigToolchainsExtens
 
                 // Is there a better option than a detached config here? Or is this fine?
                 var config = getProject().getConfigurations().detachedConfiguration(dep);
-                
+
                 var toolchainDirectory = config.getIncoming().artifactView(artifactView -> {
                     artifactView.attributes(attributes ->
                             attributes.attribute(ZigToolchainComponentRule.ZIG_TOOLCHAIN_BUNDLING_ATTRIBUTE, false)
@@ -135,23 +143,23 @@ public abstract class ZigToolchainsExtensionInternal extends ZigToolchainsExtens
                     return artifact.getFile();
                 });
 
-                // TODO: cache this provider
                 var toolchainProvider = toolchainDirectory.map(getObjectFactory().newInstance(ToolchainCreatingTransformer.class, resolvedSpec));
+                toolchains.put(resolvedSpec, toolchainProvider);
                 return toolchainProvider;
             }
         }
-        
+
         throw new IllegalStateException("No toolchain provider found for " + resolvedSpec);
     }
-    
+
     public static abstract class ToolchainCreatingTransformer implements Transformer<ZigToolchain, File> {
-        private final ResolvedZigSpec spec;
-        
+        private final ResolvedZigInfo spec;
+
         @Inject
-        public ToolchainCreatingTransformer(ResolvedZigSpec spec) {
+        public ToolchainCreatingTransformer(ResolvedZigInfo spec) {
             this.spec = spec;
         }
-        
+
         @Inject
         protected abstract ObjectFactory getObjectFactory();
 
@@ -171,11 +179,11 @@ public abstract class ZigToolchainsExtensionInternal extends ZigToolchainsExtens
             return getObjectFactory().newInstance(ZigToolchain.class, directoryProperty.get(), spec);
         }
     }
-    
+
     public static abstract class CompilerCreatingTransformer implements Transformer<ZigCompiler, ZigToolchain> {
         @Inject
         protected abstract ObjectFactory getObjectFactory();
-        
+
         @Inject
         public CompilerCreatingTransformer() {}
 
@@ -184,7 +192,7 @@ public abstract class ZigToolchainsExtensionInternal extends ZigToolchainsExtens
             return getObjectFactory().newInstance(ZigToolchain.DefaultZigCompiler.class, zigToolchain);
         }
     }
-    
+
     public Provider<ZigCompiler> compilerFor(ZigToolchainSpec spec) {
         return toolchainFor(spec).map(getObjectFactory().newInstance(CompilerCreatingTransformer.class));
     }

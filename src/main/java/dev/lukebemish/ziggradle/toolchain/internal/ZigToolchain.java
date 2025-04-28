@@ -5,25 +5,24 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.jetbrains.annotations.Nullable;
 
 import javax.inject.Inject;
 
 public class ZigToolchain {
     private final Directory directory;
-    private final ResolvedZigSpec spec;
+    private final ResolvedZigInfo spec;
 
     @Inject
-    public ZigToolchain(Directory directory, ResolvedZigSpec spec) {
+    public ZigToolchain(Directory directory, ResolvedZigInfo spec) {
         this.directory = directory;
         this.spec = spec;
     }
 
     @Nested
-    protected ResolvedZigSpec getSpec() {
+    protected ResolvedZigInfo getSpec() {
         return spec;
     }
-    
+
     @Internal
     public Directory getInstallationPath() {
         return directory;
@@ -36,7 +35,7 @@ public class ZigToolchain {
         public DefaultZigCompiler(ZigToolchain toolchain) {
             this.toolchain = toolchain;
         }
-        
+
         @Internal
         public ZigToolchain getToolchain() {
             return toolchain;
