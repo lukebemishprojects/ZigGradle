@@ -1,0 +1,19 @@
+plugins {
+    id 'dev.lukebemish.ziggradle'
+}
+
+abstract class ZigTask extends DefaultTask {
+    @Input
+    abstract Property<dev.lukebemish.ziggradle.toolchain.ZigCompiler> getZigCompiler()
+    
+    @TaskAction
+    void run() {
+        println zigCompiler.get().executablePath
+    }
+}
+
+tasks.register('zigTask', ZigTask) {
+    zigCompiler = zig.toolchains.compilerFor {
+        version = dev.lukebemish.ziggradle.toolchain.ZigVersion.of('0.14.0')
+    }
+}
