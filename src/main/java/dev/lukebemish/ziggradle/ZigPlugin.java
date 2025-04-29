@@ -100,6 +100,19 @@ public abstract class ZigPlugin implements Plugin<Object> {
                 });
             });
         }
+        repositoryHandler.exclusiveContent(exclusiveContent -> {
+            exclusiveContent.forRepository(() -> repositoryHandler.ivy(repo -> {
+                repo.setName("zig-gradle-jni-headers-openjdk");
+                repo.setUrl("https://github.com/openjdk/jdk/blob/");
+                repo.patternLayout(layout -> {
+                    layout.artifact("[revision]/src/java.base/[module]");
+                });
+                repo.metadataSources(IvyArtifactRepository.MetadataSources::artifact);
+            }));
+            exclusiveContent.filter(content -> {
+                content.includeGroup("dev.lukebemish.ziggradle.internal.openjdk-jni");
+            });
+        });
     }
 
     private static void applyToolchainModules(ComponentMetadataHandler components, Collection<ZigToolchainRepository> repos) {

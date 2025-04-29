@@ -6,7 +6,9 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
@@ -34,8 +36,21 @@ public abstract class ZigCompileTask extends DefaultTask {
     @SkipWhenEmpty
     public abstract ConfigurableFileCollection getSourceFiles();
 
+    @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    public abstract ConfigurableFileCollection getHeaders();
+
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @InputFiles
+    protected FileCollection getHeaderFiles() {
+        return getHeaders().getAsFileTree();
+    }
+
     @Nested
     public abstract ZigCompileOptions getOptions();
+
+    @Input
+    public abstract Property<String> getBaseArtifactName();
 
     public void options(Action<? super ZigCompileOptions> action) {
         action.execute(getOptions());
@@ -80,6 +95,11 @@ public abstract class ZigCompileTask extends DefaultTask {
                 args.add(getOptions().getGlobalZigCache().get().getAsFile().getAbsolutePath());
             }
 
+            args.add("--name");
+            args.add(getBaseArtifactName().get());
+
+            // Module settings
+
             if (getOptions().getDynamic().isPresent()) {
                 if (getOptions().getDynamic().get()) {
                     args.add("-dynamic");
@@ -96,6 +116,11 @@ public abstract class ZigCompileTask extends DefaultTask {
             args.add(target);
 
             args.addAll(getOptions().getCompilerArgs().get());
+
+            for (var headerDir : getHeaders().getFiles()) {
+                args.add("-I"+headerDir.getAbsolutePath());
+            }
+
             for (var sourceFile : getSourceFiles().getFiles()) {
                 args.add(sourceFile.getAbsolutePath());
             }

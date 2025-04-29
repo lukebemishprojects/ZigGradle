@@ -18,6 +18,8 @@ zig {
     }
 }
 
+var jniHeaders = zig.jniHeadersUnixOpenJDK("jdk-17+35")
+
 tasks.register('zigCompile', dev.lukebemish.ziggradle.ZigCompileTask) {
     zigCompiler = zig.compilerFor {}
     options {
@@ -26,15 +28,9 @@ tasks.register('zigCompile', dev.lukebemish.ziggradle.ZigCompileTask) {
         targetOperatingSystem = dev.lukebemish.ziggradle.ZigOperatingSystemTarget.LINUX
         dynamic = true
     }
-    sourceFiles.from(fileTree('src/zig') {
-        include '**/*.c'
-        // TODO: .h file is also a source file, just not an entrypoint. Provide a good way to distinguish there?
-    })
+    baseArtifactName = "somelib"
+    headers.from(file('src/headers'))
+    headers.from(jniHeaders)
+    sourceFiles.from(fileTree('src/zig'))
     outputDirectory = project.layout.buildDirectory.dir("zig-output")
-}
-
-tasks.register('zigTask', ZigTask) {
-    zigCompiler = zig.compilerFor {
-        version = dev.lukebemish.ziggradle.toolchain.ZigVersion.of('0.14.0')
-    }
 }
