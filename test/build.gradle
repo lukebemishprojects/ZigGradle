@@ -12,6 +12,27 @@ abstract class ZigTask extends DefaultTask {
     }
 }
 
+zig {
+    toolchain {
+        version = dev.lukebemish.ziggradle.toolchain.ZigVersion.of('0.14.0')
+    }
+}
+
+tasks.register('zigCompile', dev.lukebemish.ziggradle.ZigCompileTask) {
+    zigCompiler = zig.compilerFor {}
+    options {
+        artifactType = dev.lukebemish.ziggradle.ZigArtifactType.LIBRARY
+        compilerArgs.addAll(["-lc"])
+        targetOperatingSystem = dev.lukebemish.ziggradle.ZigOperatingSystemTarget.LINUX
+        dynamic = true
+    }
+    sourceFiles.from(fileTree('src/zig') {
+        include '**/*.c'
+        // TODO: .h file is also a source file, just not an entrypoint. Provide a good way to distinguish there?
+    })
+    outputDirectory = project.layout.buildDirectory.dir("zig-output")
+}
+
 tasks.register('zigTask', ZigTask) {
     zigCompiler = zig.compilerFor {
         version = dev.lukebemish.ziggradle.toolchain.ZigVersion.of('0.14.0')

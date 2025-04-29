@@ -4,14 +4,14 @@ import dev.lukebemish.ziggradle.internal.PlatformUtils;
 import dev.lukebemish.ziggradle.toolchain.ZigToolchainRequest;
 import dev.lukebemish.ziggradle.toolchain.ZigToolchainSpec;
 import dev.lukebemish.ziggradle.toolchain.ZigVersion;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -37,6 +37,7 @@ import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +69,7 @@ public abstract class ToolchainUnpackingService implements BuildService<Toolchai
         if (!discovered.compareAndExchange(false, true)) {
             // We search the relevant directory for toolchain properties files
             var cacheDir = getParameters().getGradleUserHome().getAsFile().get().toPath().resolve("caches")
-                .resolve("dev.lukebemish.ziggradle").resolve("toolchains.1");
+                .resolve("dev.lukebemish.ziggradle").resolve("toolchains-1");
             if (cacheDir.toFile().exists()) {
                 try (var files = Files.list(cacheDir)) {
                     files.filter(f -> f.getFileName().toString().endsWith(".properties")).forEach(f -> {
@@ -218,6 +219,12 @@ public abstract class ToolchainUnpackingService implements BuildService<Toolchai
         throw new IllegalArgumentException("No toolchain matching "+info);
     }
 
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
+
+    @Inject
+    protected abstract ArchiveOperations getArchiveOperations();
+
     File unpack(File input, ResolvedZigToolchainInfo info) {
         var version = info.zigVersion();
         var arch = info.buildPlatform().getArchitecture().name().toLowerCase(Locale.ROOT);
@@ -230,7 +237,7 @@ public abstract class ToolchainUnpackingService implements BuildService<Toolchai
             os
         );
         var cacheDir = getParameters().getGradleUserHome().get().getAsFile().toPath().resolve("caches")
-            .resolve("dev.lukebemish.ziggradle").resolve("toolchains.1");
+            .resolve("dev.lukebemish.ziggradle").resolve("toolchains-1");
         var outputDir = cacheDir.resolve(key);
         var lockFile = cacheDir.resolve(key + ".lock");
         var existsFile = cacheDir.resolve(key + ".properties");
@@ -268,29 +275,22 @@ public abstract class ToolchainUnpackingService implements BuildService<Toolchai
     }
 
     private void decompress(File input, File outputDir) {
-        try (
-            var fis = new FileInputStream(input);
-            var bis = new BufferedInputStream(fis);
-            XZCompressorInputStream xzis = new XZCompressorInputStream(bis);
-            TarArchiveInputStream tais = new TarArchiveInputStream(xzis)
-        ) {
-            TarArchiveEntry entry;
-            while ((entry = tais.getNextEntry()) != null) {
-                Path outputPath = outputDir.toPath().resolve(entry.getName()).normalize();
-                if (!outputPath.startsWith(outputDir.toPath())) {
-                    throw new IOException("Entry is outside of the target directory: "
-                        + entry.getName());
-                }
-
-                if (entry.isDirectory()) {
-                    Files.createDirectories(outputPath);
-                } else {
-                    Files.createDirectories(outputPath.getParent());
-                    Files.copy(tais, outputPath);
-                }
+        try {
+            var tempFile = Files.createTempFile("zig-gradle", "tar");
+            try (
+                var fis = new FileInputStream(input);
+                var bis = new BufferedInputStream(fis);
+                XZCompressorInputStream xzis = new XZCompressorInputStream(bis)
+            ) {
+                Files.copy(xzis, tempFile, StandardCopyOption.REPLACE_EXISTING);
             }
+
+            getFileSystemOperations().copy(spec -> {
+                spec.from(getArchiveOperations().tarTree(tempFile));
+                spec.into(outputDir);
+            });
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

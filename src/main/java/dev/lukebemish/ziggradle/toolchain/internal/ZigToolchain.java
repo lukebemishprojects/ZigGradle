@@ -2,6 +2,8 @@ package dev.lukebemish.ziggradle.toolchain.internal;
 
 import dev.lukebemish.ziggradle.internal.PlatformUtils;
 import dev.lukebemish.ziggradle.toolchain.ZigCompiler;
+import dev.lukebemish.ziggradle.toolchain.ZigInstallationMetadata;
+import dev.lukebemish.ziggradle.toolchain.ZigVersion;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
@@ -30,17 +32,38 @@ public class ZigToolchain {
         return directory;
     }
 
-    public abstract static class DefaultZigCompiler implements ZigCompiler {
-        private final ZigToolchain toolchain;
+    public abstract static class DefaultInstallationMetadata implements ZigInstallationMetadata {
+        private final ZigVersion version;
+        private final Directory installationPath;
 
         @Inject
-        public DefaultZigCompiler(ZigToolchain toolchain) {
-            this.toolchain = toolchain;
+        public DefaultInstallationMetadata(ZigToolchain toolchain) {
+            this.version = toolchain.getSpec().zigVersion();
+            this.installationPath = toolchain.getInstallationPath();
         }
 
-        @Internal
-        public ZigToolchain getToolchain() {
-            return toolchain;
+        @Override
+        public ZigVersion getVersion() {
+            return version;
+        }
+
+        @Override
+        public Directory getInstallationPath() {
+            return installationPath;
+        }
+    }
+
+    public abstract static class DefaultZigCompiler implements ZigCompiler {
+        private final ZigInstallationMetadata metadata;
+
+        @Inject
+        public DefaultZigCompiler(ZigInstallationMetadata metadata) {
+            this.metadata = metadata;
+        }
+
+        @Override
+        public ZigInstallationMetadata getInstallationMetadata() {
+            return metadata;
         }
 
         @SuppressWarnings("UnstableApiUsage")
@@ -48,9 +71,9 @@ public class ZigToolchain {
         public RegularFile getExecutablePath() {
             var os = PlatformUtils.getBuildPlatform().getOperatingSystem();
             if (os == OperatingSystem.WINDOWS) {
-                return toolchain.directory.file("zig.exe");
+                return metadata.getInstallationPath().file("zig.exe");
             }
-            return toolchain.directory.file("zig");
+            return metadata.getInstallationPath().file("zig");
         }
     }
 }

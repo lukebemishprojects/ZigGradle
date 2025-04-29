@@ -56,7 +56,8 @@ public abstract class ZigExtensionInternal extends ZigExtension {
 
         @Override
         public ZigCompiler transform(ZigToolchain zigToolchain) {
-            return getObjectFactory().newInstance(ZigToolchain.DefaultZigCompiler.class, zigToolchain);
+            var metadata = getObjectFactory().newInstance(ZigToolchain.DefaultInstallationMetadata.class, zigToolchain);
+            return getObjectFactory().newInstance(ZigToolchain.DefaultZigCompiler.class, metadata);
         }
     }
 

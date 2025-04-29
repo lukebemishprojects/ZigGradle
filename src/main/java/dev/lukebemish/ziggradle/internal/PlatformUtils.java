@@ -1,5 +1,7 @@
 package dev.lukebemish.ziggradle.internal;
 
+import dev.lukebemish.ziggradle.ZigArchitectureTarget;
+import dev.lukebemish.ziggradle.ZigOperatingSystemTarget;
 import org.apache.commons.lang3.SystemUtils;
 import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
@@ -8,6 +10,26 @@ import org.gradle.platform.OperatingSystem;
 
 public final class PlatformUtils {
     private PlatformUtils() {}
+
+    @SuppressWarnings("UnstableApiUsage")
+    public static ZigArchitectureTarget getCurrentArchitecture() {
+        return switch (getBuildPlatform().getArchitecture()) {
+            case X86 -> ZigArchitectureTarget.X86;
+            case X86_64 -> ZigArchitectureTarget.X86_64;
+            case AARCH64 -> ZigArchitectureTarget.AARCH64;
+        };
+    }
+
+    public static ZigOperatingSystemTarget getCurrentOperatingSystem() {
+        return switch (getBuildPlatform().getOperatingSystem()) {
+            case WINDOWS -> ZigOperatingSystemTarget.WINDOWS;
+            case MAC_OS -> ZigOperatingSystemTarget.MACOS;
+            case LINUX -> ZigOperatingSystemTarget.LINUX;
+            case SOLARIS -> ZigOperatingSystemTarget.SOLARIS;
+            case FREE_BSD -> ZigOperatingSystemTarget.FREEBSD;
+            case UNIX -> new DefaultZigOperatingSystemTarget("unix"); // Invalid target, but that is for whoever is having to deal with this to handle
+        };
+    }
 
     @SuppressWarnings("UnstableApiUsage")
     public static BuildPlatform getBuildPlatform() {

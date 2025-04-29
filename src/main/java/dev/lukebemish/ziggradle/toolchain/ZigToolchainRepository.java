@@ -17,8 +17,8 @@ public interface ZigToolchainRepository extends Named {
     void credentials(Class<? extends Credentials> credentialsType);
 
     void authentication(Action<? super AuthenticationContainer> action);
-    
+
     Property<Class<? extends ZigToolchainProvider>> getProviderClass();
-    
+
     Property<URI> getRootUri();
 }

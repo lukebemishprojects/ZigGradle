@@ -1,8 +1,9 @@
 package dev.lukebemish.ziggradle.toolchain;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public final class ZigVersion {
+public final class ZigVersion implements Serializable {
     private ZigVersion(String version) {
         this.version = version;
     }
@@ -10,9 +11,9 @@ public final class ZigVersion {
     public static ZigVersion of(String version) {
         return new ZigVersion(version);
     }
-    
+
     private final String version;
-    
+
     public String toString() {
         return version;
     }
