@@ -1,4 +1,4 @@
-# zig-gradle
+# ZigGradle
 
 A Gradle plugin for setting up and using zig toolchains. It is recommended to apply this as a settings plugin to set up
 automatic default toolchain sources, and then apply in individual subprojects as desired. To set up a default toolchain:
