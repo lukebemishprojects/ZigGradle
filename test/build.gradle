@@ -1,5 +1,5 @@
 plugins {
-    id 'dev.lukebemish.ziggradle'
+    id 'dev.lukebemish.zig-gradle'
     id 'java'
 }
 

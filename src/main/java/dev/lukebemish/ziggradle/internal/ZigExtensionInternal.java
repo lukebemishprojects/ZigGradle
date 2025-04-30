@@ -17,7 +17,7 @@ import javax.inject.Inject;
 import java.util.List;
 
 public abstract class ZigExtensionInternal extends ZigExtension {
-    public static final String ZIG_TOOLCHAIN_PROVIDER_PROXY_EXTENSION = "dev.lukebemish.ziggradle.internal.toolchain.providersExtension";
+    public static final String ZIG_TOOLCHAIN_PROVIDER_PROXY_EXTENSION = "dev.lukebemish.zig-gradle.internal.toolchain.providersExtension";
 
     @SuppressWarnings("unchecked")
     @Inject

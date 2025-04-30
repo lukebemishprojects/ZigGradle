@@ -47,7 +47,7 @@ public abstract class ZigCompileOptions {
         getTargetOperatingSystem().convention(PlatformUtils.getCurrentOperatingSystem());
 
         var dirProperty = getObjectFactory().directoryProperty();
-        dirProperty.set(getGradle().getGradleUserHomeDir().toPath().resolve("caches").resolve("dev.lukebemish.ziggradle").resolve("zig-cache").toFile());
+        dirProperty.set(getGradle().getGradleUserHomeDir().toPath().resolve("caches").resolve("dev.lukebemish.zig-gradle").resolve("zig-cache").toFile());
 
         getGlobalZigCache().convention(dirProperty);
     }

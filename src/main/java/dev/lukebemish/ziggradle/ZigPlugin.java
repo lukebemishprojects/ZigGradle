@@ -110,7 +110,7 @@ public abstract class ZigPlugin implements Plugin<Object> {
                 repo.metadataSources(IvyArtifactRepository.MetadataSources::artifact);
             }));
             exclusiveContent.filter(content -> {
-                content.includeGroup("dev.lukebemish.ziggradle.internal.openjdk-jni");
+                content.includeGroup("dev.lukebemish.zig-gradle.internal.openjdk-jni");
             });
         });
     }

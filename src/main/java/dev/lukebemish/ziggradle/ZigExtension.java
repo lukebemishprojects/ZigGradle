@@ -48,24 +48,24 @@ public abstract class ZigExtension {
     private final Map<String, TaskProvider<Copy>> jniHeadersCopy = new HashMap<>();
 
     public FileCollection jniHeadersUnixOpenJDK(String versionRef) {
-        var sharedDep = getProject().getDependencyFactory().create("dev.lukebemish.ziggradle.internal.openjdk-jni", "share/native/include/jni.h", versionRef);
-        var unixDep = getProject().getDependencyFactory().create("dev.lukebemish.ziggradle.internal.openjdk-jni", "unix/native/include/jni_md.h", versionRef);
+        var sharedDep = getProject().getDependencyFactory().create("dev.lukebemish.zig-gradle.internal.openjdk-jni", "share/native/include/jni.h", versionRef);
+        var unixDep = getProject().getDependencyFactory().create("dev.lukebemish.zig-gradle.internal.openjdk-jni", "unix/native/include/jni_md.h", versionRef);
 
         var sharedConfig = getProject().getConfigurations().detachedConfiguration(sharedDep);
         var unixConfig = getProject().getConfigurations().detachedConfiguration(unixDep);
 
         var sharedTask = jniHeadersCopy.computeIfAbsent("shared-"+versionRef, k ->
-            getProject().getTasks().register("dev.lukebemish.ziggradle.internal.copy-openjdk-jni-headers.shared."+versionRef.replace('/', '-'), Copy.class, task -> {
+            getProject().getTasks().register("dev.lukebemish.zig-gradle.internal.copy-openjdk-jni-headers.shared."+versionRef.replace('/', '-'), Copy.class, task -> {
                 task.from(sharedConfig);
-                task.into(getProject().getLayout().getBuildDirectory().dir("dev.lukebemish.ziggradle/openjdk-jni-headers/shared/"+versionRef));
+                task.into(getProject().getLayout().getBuildDirectory().dir("dev.lukebemish.zig-gradle/openjdk-jni-headers/shared/"+versionRef));
                 task.rename(s -> "jni.h");
             })
         );
 
         var unixTask = jniHeadersCopy.computeIfAbsent("unix-"+versionRef, k ->
-            getProject().getTasks().register("dev.lukebemish.ziggradle.internal.copy-openjdk-jni-headers.unix."+versionRef.replace('/', '-'), Copy.class, task -> {
+            getProject().getTasks().register("dev.lukebemish.zig-gradle.internal.copy-openjdk-jni-headers.unix."+versionRef.replace('/', '-'), Copy.class, task -> {
                 task.from(unixConfig);
-                task.into(getProject().getLayout().getBuildDirectory().dir("dev.lukebemish.ziggradle/openjdk-jni-headers/unix/"+versionRef));
+                task.into(getProject().getLayout().getBuildDirectory().dir("dev.lukebemish.zig-gradle/openjdk-jni-headers/unix/"+versionRef));
                 task.rename(s -> "jni_md.h");
             })
         );
@@ -78,24 +78,24 @@ public abstract class ZigExtension {
     }
 
     public FileCollection jniHeadersWindowsOpenJDK(String versionRef) {
-        var sharedDep = getProject().getDependencyFactory().create("dev.lukebemish.ziggradle.internal.openjdk-jni", "share/native/include/jni.h", versionRef);
-        var windowsDep = getProject().getDependencyFactory().create("dev.lukebemish.ziggradle.internal.openjdk-jni", "windows/native/include/jni_md.h", versionRef);
+        var sharedDep = getProject().getDependencyFactory().create("dev.lukebemish.zig-gradle.internal.openjdk-jni", "share/native/include/jni.h", versionRef);
+        var windowsDep = getProject().getDependencyFactory().create("dev.lukebemish.zig-gradle.internal.openjdk-jni", "windows/native/include/jni_md.h", versionRef);
 
         var sharedConfig = getProject().getConfigurations().detachedConfiguration(sharedDep);
         var windowsConfig = getProject().getConfigurations().detachedConfiguration(windowsDep);
 
         var sharedTask = jniHeadersCopy.computeIfAbsent("shared-"+versionRef, k ->
-            getProject().getTasks().register("dev.lukebemish.ziggradle.internal.copy-openjdk-jni-headers.shared."+versionRef.replace('/', '-'), Copy.class, task -> {
+            getProject().getTasks().register("dev.lukebemish.zig-gradle.internal.copy-openjdk-jni-headers.shared."+versionRef.replace('/', '-'), Copy.class, task -> {
                 task.from(sharedConfig);
-                task.into(getProject().getLayout().getBuildDirectory().dir("dev.lukebemish.ziggradle/openjdk-jni-headers/shared/"+versionRef));
+                task.into(getProject().getLayout().getBuildDirectory().dir("dev.lukebemish.zig-gradle/openjdk-jni-headers/shared/"+versionRef));
                 task.rename(s -> "jni.h");
             })
         );
 
         var windowsTask = jniHeadersCopy.computeIfAbsent("windows-"+versionRef, k ->
-            getProject().getTasks().register("dev.lukebemish.ziggradle.internal.copy-openjdk-jni-headers.windows."+versionRef.replace('/', '-'), Copy.class, task -> {
+            getProject().getTasks().register("dev.lukebemish.zig-gradle.internal.copy-openjdk-jni-headers.windows."+versionRef.replace('/', '-'), Copy.class, task -> {
                 task.from(windowsConfig);
-                task.into(getProject().getLayout().getBuildDirectory().dir("dev.lukebemish.ziggradle/openjdk-jni-headers/windows/"+versionRef));
+                task.into(getProject().getLayout().getBuildDirectory().dir("dev.lukebemish.zig-gradle/openjdk-jni-headers/windows/"+versionRef));
                 task.rename(s -> "jni_md.h");
             })
         );

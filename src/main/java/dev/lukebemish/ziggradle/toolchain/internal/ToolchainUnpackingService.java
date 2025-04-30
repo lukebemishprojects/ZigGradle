@@ -46,10 +46,10 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class ToolchainUnpackingService implements BuildService<ToolchainUnpackingService.Parameters> {
-    public static final String TOOLCHAIN_UNPACKING_SERVICE_NAME = "dev.lukebemish.ziggradle.internal.toolchain.unpackingService";
+    public static final String TOOLCHAIN_UNPACKING_SERVICE_NAME = "dev.lukebemish.zig-gradle.internal.toolchain.unpackingService";
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolchainUnpackingService.class);
 
-    public static final String ZIG_TOOLCHAIN_PROVIDER_SERVICE_PREFIX = "dev.lukebemish.ziggradle.internal.toolchain.providers.";
+    public static final String ZIG_TOOLCHAIN_PROVIDER_SERVICE_PREFIX = "dev.lukebemish.zig-gradle.internal.toolchain.providers.";
 
     public interface Parameters extends BuildServiceParameters {
         DirectoryProperty getGradleUserHome();
@@ -69,7 +69,7 @@ public abstract class ToolchainUnpackingService implements BuildService<Toolchai
         if (!discovered.compareAndExchange(false, true)) {
             // We search the relevant directory for toolchain properties files
             var cacheDir = getParameters().getGradleUserHome().getAsFile().get().toPath().resolve("caches")
-                .resolve("dev.lukebemish.ziggradle").resolve("toolchains-1");
+                .resolve("dev.lukebemish.zig-gradle").resolve("toolchains-1");
             if (cacheDir.toFile().exists()) {
                 try (var files = Files.list(cacheDir)) {
                     files.filter(f -> f.getFileName().toString().endsWith(".properties")).forEach(f -> {
@@ -237,7 +237,7 @@ public abstract class ToolchainUnpackingService implements BuildService<Toolchai
             os
         );
         var cacheDir = getParameters().getGradleUserHome().get().getAsFile().toPath().resolve("caches")
-            .resolve("dev.lukebemish.ziggradle").resolve("toolchains-1");
+            .resolve("dev.lukebemish.zig-gradle").resolve("toolchains-1");
         var outputDir = cacheDir.resolve(key);
         var lockFile = cacheDir.resolve(key + ".lock");
         var existsFile = cacheDir.resolve(key + ".properties");

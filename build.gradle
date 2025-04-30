@@ -1,21 +1,130 @@
+import org.gradle.api.attributes.plugin.GradlePluginApiVersion
+
 plugins {
     id 'java-gradle-plugin'
+    id 'java-library'
+    id 'dev.lukebemish.managedversioning'
+    alias cLibs.plugins.gradlepublish
 }
+
+group = 'dev.lukebemish'
+
+['apiElements', 'runtimeElements'].each {
+    configurations.named(it).configure {
+        attributes {
+            attribute(
+                GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+                objects.named(GradlePluginApiVersion, gradle.gradleVersion)
+            )
+        }
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
+managedVersioning {
+    versionFile.set file('version.properties')
+    versionPRs()
+    versionSnapshots()
+}
+
+managedVersioning.apply()
+
+tasks.named('wrapper', Wrapper) {
+    distributionType = Wrapper.DistributionType.ALL
+}
+
+managedVersioning {
+    gitHubActions {
+        release {
+            prettyName = 'Release'
+            workflowDispatch = true
+            gradleJob {
+                name.set 'build'
+                buildCache()
+                setupGitUser()
+                readOnly = false
+                gradlew 'Tag Release', 'tagRelease'
+                gradlew 'Build', 'build'
+                push()
+                recordVersion 'Record Version', 'version'
+                dependencySubmission()
+            }
+            gradleJob {
+                name.set 'publishPlugins'
+                buildCache()
+                needs.add('build')
+                gradlew 'Publish Plugins', 'publishPlugins'
+                tag.set('${{needs.build.outputs.version}}')
+                pluginPortal()
+            }
+        }
+        snapshot {
+            prettyName.set 'Snapshot'
+            workflowDispatch.set(true)
+            onBranches.add 'main'
+            gradleJob {
+                name.set 'build'
+                buildCache()
+                cacheReadOnly = false
+                gradlew 'Build', 'build'
+                gradlew 'Publish', 'publish'
+                mavenSnapshot('github')
+            }
+        }
+        build_pr {
+            prettyName.set 'Build PR'
+            pullRequest.set(true)
+            gradleJob {
+                name.set 'build'
+                gradlew 'Build', 'build'
+                gradlew 'Publish', 'publish'
+                pullRequestArtifact()
+            }
+        }
+        publish_pr {
+            prettyName.set 'Publish PR'
+            publishPullRequestAction(
+                'github',
+                "dev/lukebemish/zig-gradle,dev/lukebemish/zig-gradle/*",
+                'Build PR'
+            )
+        }
+    }
+}
+
+managedVersioning.publishing.mavenSnapshot(publishing)
+managedVersioning.publishing.mavenStaging(publishing)
+managedVersioning.publishing.mavenPullRequest(publishing)
 
 dependencies {
     implementation gradleApi()
 
-    compileOnly "org.jspecify:jspecify:1.0.0"
+    compileOnly cLibs.bundles.compileonly
     implementation "org.apache.commons:commons-compress:1.27.1"
     // commons-compress does not depend on this but uses it for xz decompression
     runtimeOnly "org.tukaani:xz:1.10"
+
+    annotationProcessor cLibs.bundles.annotationprocessor
 }
 
 gradlePlugin {
+    website = 'https://github.com/lukebemishprojects/ZigGradle'
+    vcsUrl = 'https://github.com/lukebemishprojects/ZigGradle.git'
+
     plugins {
         zigGradle {
-            id = 'dev.lukebemish.ziggradle'
+            id = 'dev.lukebemish.zig-gradle'
             implementationClass = 'dev.lukebemish.ziggradle.ZigPlugin'
+            displayName = 'ZigGradle'
+            description = 'A plugin for setting up zig toolchains and compiling with them'
+            tags.addAll(['zig'])
         }
     }
 }
