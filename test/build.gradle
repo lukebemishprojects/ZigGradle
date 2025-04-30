@@ -1,15 +1,6 @@
 plugins {
     id 'dev.lukebemish.ziggradle'
-}
-
-abstract class ZigTask extends DefaultTask {
-    @Input
-    abstract Property<dev.lukebemish.ziggradle.toolchain.ZigCompiler> getZigCompiler()
-
-    @TaskAction
-    void run() {
-        println zigCompiler.get().executablePath
-    }
+    id 'java'
 }
 
 zig {
@@ -18,7 +9,11 @@ zig {
     }
 }
 
-var jniHeaders = zig.jniHeadersUnixOpenJDK("jdk-17+35")
+tasks.named('compileJava', JavaCompile) {
+    options.headerOutputDirectory.set(project.layout.buildDirectory.dir("java-headers"))
+}
+
+var jniHeaders = zig.jniHeadersUnixOpenJDK("tags/jdk-17+35")
 
 tasks.register('zigCompile', dev.lukebemish.ziggradle.ZigCompileTask) {
     zigCompiler = zig.compilerFor {}
@@ -30,6 +25,7 @@ tasks.register('zigCompile', dev.lukebemish.ziggradle.ZigCompileTask) {
     }
     baseArtifactName = "somelib"
     headers.from(file('src/headers'))
+    headers.from(tasks.named('compileJava').flatMap { it.options.headerOutputDirectory })
     headers.from(jniHeaders)
     sourceFiles.from(fileTree('src/zig'))
     outputDirectory = project.layout.buildDirectory.dir("zig-output")

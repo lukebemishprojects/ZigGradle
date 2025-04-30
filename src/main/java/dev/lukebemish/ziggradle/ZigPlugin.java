@@ -103,7 +103,7 @@ public abstract class ZigPlugin implements Plugin<Object> {
         repositoryHandler.exclusiveContent(exclusiveContent -> {
             exclusiveContent.forRepository(() -> repositoryHandler.ivy(repo -> {
                 repo.setName("zig-gradle-jni-headers-openjdk");
-                repo.setUrl("https://github.com/openjdk/jdk/blob/");
+                repo.setUrl("https://github.com/openjdk/jdk/raw/refs/");
                 repo.patternLayout(layout -> {
                     layout.artifact("[revision]/src/java.base/[module]");
                 });
