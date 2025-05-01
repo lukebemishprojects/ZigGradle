@@ -8,6 +8,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
@@ -22,6 +23,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 
+@CacheableTask
 public abstract class ZigCompileTask extends DefaultTask {
     @Inject
     public ZigCompileTask() {

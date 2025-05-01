@@ -35,6 +35,9 @@ public abstract class ZigPlugin implements Plugin<Object> {
             project.getGradle().getSharedServices().registerIfAbsent(ToolchainUnpackingService.TOOLCHAIN_UNPACKING_SERVICE_NAME, ToolchainUnpackingService.class, spec -> {
                 spec.getParameters().getGradleUserHome().set(project.getGradle().getGradleUserHomeDir());
             });
+            project.getTasks().withType(ZigCompileTask.class, task -> {
+                task.getZigCompiler().convention(zigExtension.compilerFor(spec -> {}));
+            });
         } else if (target instanceof Settings settings) {
             settings.getGradle().getPluginManager().apply(ZigPlugin.class);
 

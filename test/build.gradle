@@ -16,7 +16,6 @@ tasks.named('compileJava', JavaCompile) {
 var jniHeaders = zig.jniHeadersUnixOpenJDK("tags/jdk-17+35")
 
 tasks.register('zigCompile', dev.lukebemish.ziggradle.ZigCompileTask) {
-    zigCompiler = zig.compilerFor {}
     options {
         artifactType = dev.lukebemish.ziggradle.ZigArtifactType.LIBRARY
         compilerArgs.addAll(["-lc"])
