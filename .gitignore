@@ -19,3 +19,7 @@ build
 
 # other
 eclipse
+
+# zig
+.zig-cache
+zig-out

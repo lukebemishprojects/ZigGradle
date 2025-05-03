@@ -68,7 +68,7 @@ public abstract class ZigCompileTask extends BaseZigTask<ZigCompileOptions> {
                 case OBJECT -> "build-obj";
             });
 
-            args.addAll(getCacheDirArgs());
+            args.addAll(getOptions().getCacheDirArgs());
 
             args.add("--name");
             args.add(getBaseArtifactName().get());
@@ -90,7 +90,7 @@ public abstract class ZigCompileTask extends BaseZigTask<ZigCompileOptions> {
                 args.add(target.getName());
             }
 
-            args.addAll(resolveCompilerArgs());
+            args.addAll(getOptions().resolveCompilerArgs());
 
             for (var headerDir : getHeaders().getFiles()) {
                 args.add("-I"+headerDir.getAbsolutePath());

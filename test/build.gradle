@@ -23,7 +23,7 @@ tasks.register('zigCompile', dev.lukebemish.ziggradle.ZigCompileTask) {
     }
     baseArtifactName = "somelib"
     headers.from(file('src/headers'))
-    headers.from(tasks.named('compileJava').flatMap { it.options.headerOutputDirectory })
+    headers.from(tasks.named('compileJava', JavaCompile).flatMap { it.options.headerOutputDirectory })
     headers.from(jniHeaders)
     sourceFiles.from(fileTree('src/zig'))
     outputDirectory = project.layout.buildDirectory.dir("zig-output")
@@ -34,4 +34,37 @@ tasks.register('zigEnv', dev.lukebemish.ziggradle.ZigTask) {
         compilerArgs.addAll(["env"])
         env.put("NO_COLOR", "1")
     }
+}
+
+tasks.register('zigBuildInstall', dev.lukebemish.ziggradle.ZigBuildTask) {
+    options {
+        steps = ["install"]
+        optimize = dev.lukebemish.ziggradle.ZigBuildOptions.Optimization.ReleaseFast
+    }
+    sourceFiles.from(file("build.zig"))
+    sourceFiles.from(file("build.zig.zon"))
+    sourceFiles.from(fileTree("src/zigbuild"))
+    prefixDirectory = project.layout.buildDirectory.dir("zig-build")
+}
+
+tasks.register('zigBuildTest', dev.lukebemish.ziggradle.ZigBuildTask) {
+    options {
+        steps = ["test"]
+        optimize = dev.lukebemish.ziggradle.ZigBuildOptions.Optimization.ReleaseFast
+    }
+    sourceFiles.from(file("build.zig"))
+    sourceFiles.from(file("build.zig.zon"))
+    sourceFiles.from(fileTree("src/zigbuild"))
+    prefixDirectory = project.layout.buildDirectory.dir("zig-build")
+}
+
+tasks.register('zigBuildRun', dev.lukebemish.ziggradle.ZigBuildTask) {
+    options {
+        steps = ["run"]
+        optimize = dev.lukebemish.ziggradle.ZigBuildOptions.Optimization.ReleaseFast
+    }
+    sourceFiles.from(file("build.zig"))
+    sourceFiles.from(file("build.zig.zon"))
+    sourceFiles.from(fileTree("src/zigbuild"))
+    prefixDirectory = project.layout.buildDirectory.dir("zig-build")
 }
