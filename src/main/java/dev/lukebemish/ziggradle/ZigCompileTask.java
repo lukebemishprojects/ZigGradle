@@ -1,9 +1,6 @@
 package dev.lukebemish.ziggradle;
 
-import dev.lukebemish.ziggradle.toolchain.ZigCompiler;
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -17,14 +14,13 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.process.ExecOperations;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 
 @CacheableTask
-public abstract class ZigCompileTask extends ZigTask {
+public abstract class ZigCompileTask extends BaseZigTask<ZigCompileOptions> {
     @Inject
     public ZigCompileTask() {
         super();
@@ -52,14 +48,9 @@ public abstract class ZigCompileTask extends ZigTask {
     @Input
     public abstract Property<String> getBaseArtifactName();
 
-    public void options(Action<? super ZigCompileOptions> action) {
-        action.execute(getOptions());
-    }
-
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
-    @Override
     @TaskAction
     protected void run() throws IOException {
         var dir = getOutputDirectory().getAsFile().get();
@@ -99,7 +90,7 @@ public abstract class ZigCompileTask extends ZigTask {
                 args.add(target.getName());
             }
 
-            args.addAll(getOptions().getCompilerArgs().get());
+            args.addAll(resolveCompilerArgs());
 
             for (var headerDir : getHeaders().getFiles()) {
                 args.add("-I"+headerDir.getAbsolutePath());

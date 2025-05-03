@@ -28,3 +28,10 @@ tasks.register('zigCompile', dev.lukebemish.ziggradle.ZigCompileTask) {
     sourceFiles.from(fileTree('src/zig'))
     outputDirectory = project.layout.buildDirectory.dir("zig-output")
 }
+
+tasks.register('zigEnv', dev.lukebemish.ziggradle.ZigTask) {
+    options {
+        compilerArgs.addAll(["env"])
+        env.put("NO_COLOR", "1")
+    }
+}
