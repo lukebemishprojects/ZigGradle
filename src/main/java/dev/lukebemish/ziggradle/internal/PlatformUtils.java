@@ -2,6 +2,7 @@ package dev.lukebemish.ziggradle.internal;
 
 import dev.lukebemish.ziggradle.ZigArchitectureTarget;
 import dev.lukebemish.ziggradle.ZigOperatingSystemTarget;
+import dev.lukebemish.ziggradle.ZigTargetTriple;
 import org.apache.commons.lang3.SystemUtils;
 import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
@@ -29,6 +30,10 @@ public final class PlatformUtils {
             case FREE_BSD -> ZigOperatingSystemTarget.FREEBSD;
             case UNIX -> new DefaultZigOperatingSystemTarget("unix"); // Invalid target, but that is for whoever is having to deal with this to handle
         };
+    }
+
+    public static ZigTargetTriple getCurrentTriple() {
+        return ZigTargetTriple.of(getCurrentArchitecture(), getCurrentOperatingSystem(), null);
     }
 
     @SuppressWarnings("UnstableApiUsage")
