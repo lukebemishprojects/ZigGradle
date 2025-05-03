@@ -19,7 +19,6 @@ tasks.register('zigCompile', dev.lukebemish.ziggradle.ZigCompileTask) {
     options {
         artifactType = dev.lukebemish.ziggradle.ZigArtifactType.LIBRARY
         compilerArgs.addAll(["-lc"])
-        targetOperatingSystem = dev.lukebemish.ziggradle.ZigOperatingSystemTarget.LINUX
         dynamic = true
     }
     baseArtifactName = "somelib"

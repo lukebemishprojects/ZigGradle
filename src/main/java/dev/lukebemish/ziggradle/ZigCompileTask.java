@@ -110,12 +110,10 @@ public abstract class ZigCompileTask extends DefaultTask {
                 }
             }
 
-            var target = getOptions().getTargetArchitecture().get() + "-"
-                    + getOptions().getTargetOperatingSystem().get();
-            // TODO: ABI
-
-            args.add("-target");
-            args.add(target);
+            if (getOptions().getTargetTriple().isPresent()) {
+                args.add("-target");
+                args.add(getOptions().getTargetTriple().get().getName());
+            }
 
             args.addAll(getOptions().getCompilerArgs().get());
 

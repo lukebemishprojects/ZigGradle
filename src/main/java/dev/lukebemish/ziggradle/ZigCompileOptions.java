@@ -17,10 +17,8 @@ public abstract class ZigCompileOptions {
     public abstract ListProperty<String> getCompilerArgs();
 
     @Input
-    public abstract Property<ZigArchitectureTarget> getTargetArchitecture();
-
-    @Input
-    public abstract Property<ZigOperatingSystemTarget> getTargetOperatingSystem();
+    @Optional
+    public abstract Property<ZigTargetTriple> getTargetTriple();
 
     @Input
     public abstract Property<ZigArtifactType> getArtifactType();
@@ -43,9 +41,6 @@ public abstract class ZigCompileOptions {
 
     @Inject
     public ZigCompileOptions() {
-        getTargetArchitecture().convention(PlatformUtils.getCurrentArchitecture());
-        getTargetOperatingSystem().convention(PlatformUtils.getCurrentOperatingSystem());
-
         var dirProperty = getObjectFactory().directoryProperty();
         dirProperty.set(getGradle().getGradleUserHomeDir().toPath().resolve("caches").resolve("dev.lukebemish.zig-gradle").resolve("zig-cache").toFile());
 
