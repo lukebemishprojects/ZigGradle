@@ -12,10 +12,7 @@ import org.gradle.api.tasks.Optional;
 
 import javax.inject.Inject;
 
-public abstract class ZigCompileOptions {
-    @Input
-    public abstract ListProperty<String> getCompilerArgs();
-
+public abstract class ZigCompileOptions extends ZigOptions {
     @Input
     @Optional
     public abstract Property<ZigTargetTriple> getTargetTriple();
@@ -23,27 +20,12 @@ public abstract class ZigCompileOptions {
     @Input
     public abstract Property<ZigArtifactType> getArtifactType();
 
-    @Internal
-    public abstract DirectoryProperty getZigCache();
-
-    @Internal
-    public abstract DirectoryProperty getGlobalZigCache();
-
     @Input
     @Optional
     public abstract Property<Boolean> getDynamic();
 
     @Inject
-    protected abstract Gradle getGradle();
-
-    @Inject
-    protected abstract ObjectFactory getObjectFactory();
-
-    @Inject
     public ZigCompileOptions() {
-        var dirProperty = getObjectFactory().directoryProperty();
-        dirProperty.set(getGradle().getGradleUserHomeDir().toPath().resolve("caches").resolve("dev.lukebemish.zig-gradle").resolve("zig-cache").toFile());
-
-        getGlobalZigCache().convention(dirProperty);
+        super();
     }
 }

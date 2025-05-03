@@ -24,14 +24,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 @CacheableTask
-public abstract class ZigCompileTask extends DefaultTask {
+public abstract class ZigCompileTask extends ZigTask {
     @Inject
     public ZigCompileTask() {
-        getOptions().getZigCache().convention(getProject().getLayout().getBuildDirectory().dir("zig-cache/"+getName()));
+        super();
     }
-
-    @Nested
-    public abstract Property<ZigCompiler> getZigCompiler();
 
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -48,6 +45,7 @@ public abstract class ZigCompileTask extends DefaultTask {
         return getHeaders().getAsFileTree();
     }
 
+    @Override
     @Nested
     public abstract ZigCompileOptions getOptions();
 
@@ -61,9 +59,7 @@ public abstract class ZigCompileTask extends DefaultTask {
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
-    @Inject
-    protected abstract ExecOperations getExecOperations();
-
+    @Override
     @TaskAction
     protected void run() throws IOException {
         var dir = getOutputDirectory().getAsFile().get();
@@ -72,12 +68,8 @@ public abstract class ZigCompileTask extends DefaultTask {
         }
         dir.mkdirs();
 
-        getExecOperations().exec(spec -> {
-            spec.workingDir(dir);
-            spec.setErrorOutput(System.err);
-            spec.setStandardOutput(System.out);
-
-            spec.setExecutable(getZigCompiler().get().getExecutablePath());
+        executeZig(spec -> {
+            spec.workingDir(getOutputDirectory().get());
             var args = new ArrayList<String>();
             args.add(switch (getOptions().getArtifactType().get()) {
                 case LIBRARY -> "build-lib";
@@ -85,17 +77,7 @@ public abstract class ZigCompileTask extends DefaultTask {
                 case OBJECT -> "build-obj";
             });
 
-            // Set up cache directories
-
-            if (getOptions().getZigCache().isPresent()) {
-                args.add("--cache-dir");
-                args.add(getOptions().getZigCache().get().getAsFile().getAbsolutePath());
-            }
-
-            if (getOptions().getGlobalZigCache().isPresent()) {
-                args.add("--global-cache-dir");
-                args.add(getOptions().getGlobalZigCache().get().getAsFile().getAbsolutePath());
-            }
+            args.addAll(getCacheDirArgs());
 
             args.add("--name");
             args.add(getBaseArtifactName().get());
@@ -110,9 +92,11 @@ public abstract class ZigCompileTask extends DefaultTask {
                 }
             }
 
+            // If not set, use building system's target (zig automatically detects this, no need to go through BuildPlatform)
             if (getOptions().getTargetTriple().isPresent()) {
+                var target = getOptions().getTargetTriple().get();
                 args.add("-target");
-                args.add(getOptions().getTargetTriple().get().getName());
+                args.add(target.getName());
             }
 
             args.addAll(getOptions().getCompilerArgs().get());
